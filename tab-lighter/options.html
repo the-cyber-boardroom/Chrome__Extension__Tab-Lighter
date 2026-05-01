@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tab Lighter Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Tab Lighter Options</h1>
+      <p>Configure auto-suspension, protected tabs, and memory-pressure behavior.</p>
+    </header>
+
+    <form id="settingsForm" class="card">
+      <label class="row checkbox">
+        <input id="autoSuspendEnabled" type="checkbox">
+        <span>
+          <strong>Enable automatic suspension</strong>
+          <small>Runs in the extension service worker using Chrome alarms.</small>
+        </span>
+      </label>
+
+      <label class="row">
+        <span>
+          <strong>Inactive minutes before suspension</strong>
+          <small>Tabs older than this threshold can be suspended if not protected.</small>
+        </span>
+        <input id="inactiveMinutes" type="number" min="1" max="10080">
+      </label>
+
+      <fieldset>
+        <legend>Protect tabs</legend>
+        <label><input id="protectPinned" type="checkbox"> Pinned tabs</label>
+        <label><input id="protectAudible" type="checkbox"> Tabs playing audio</label>
+        <label><input id="protectActive" type="checkbox"> Active tabs</label>
+        <label><input id="protectDiscarded" type="checkbox"> Already suspended tabs</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Memory pressure</legend>
+        <label class="row checkbox">
+          <input id="autoSuspendOnHighMemory" type="checkbox">
+          <span>
+            <strong>Use a shorter inactivity threshold during high memory pressure</strong>
+            <small>Uses system-level memory from chrome.system.memory.</small>
+          </span>
+        </label>
+        <label class="row">
+          <span>
+            <strong>Memory warning percent</strong>
+            <small>The popup marks memory pressure as high at this percentage.</small>
+          </span>
+          <input id="memoryWarningPercent" type="number" min="1" max="99">
+        </label>
+        <label class="row">
+          <span>
+            <strong>High-memory inactivity minutes</strong>
+            <small>Used only when high-memory behavior is enabled.</small>
+          </span>
+          <input id="highMemoryMinutes" type="number" min="1" max="10080">
+        </label>
+      </fieldset>
+
+      <label class="block">
+        <strong>Allowlist</strong>
+        <small>One entry per line. Supports exact domains, domain suffixes, wildcards like <code>*.example.com</code>, URL fragments, and regex patterns like <code>/docs\/important/</code>.</small>
+        <textarea id="allowlist" rows="10"></textarea>
+      </label>
+
+      <div class="buttons">
+        <button type="submit">Save settings</button>
+        <button id="resetButton" type="button">Reset defaults</button>
+      </div>
+      <p id="status" role="status"></p>
+    </form>
+  </main>
+
+  <script src="options.js"></script>
+</body>
+</html>

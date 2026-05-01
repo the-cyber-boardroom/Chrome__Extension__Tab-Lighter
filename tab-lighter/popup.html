@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tab Lighter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Tab Lighter</h1>
+      <p id="subtitle">Loading tabs…</p>
+    </div>
+    <button id="refreshButton" class="icon-button" title="Refresh">↻</button>
+  </header>
+
+  <section class="memory-card" aria-live="polite">
+    <div class="memory-topline">
+      <strong>Memory pressure</strong>
+      <span id="memoryText">Unknown</span>
+    </div>
+    <div class="meter" aria-hidden="true"><div id="memoryBar"></div></div>
+    <small id="memoryNote">Chrome exposes system memory, not exact per-tab memory.</small>
+  </section>
+
+  <section class="toolbar">
+    <input id="searchInput" type="search" placeholder="Search title, URL, or domain" aria-label="Search tabs">
+    <div class="actions">
+      <button id="suspendEligibleButton">Suspend eligible</button>
+      <button id="runAutoButton">Run auto rules</button>
+      <button id="optionsButton">Options</button>
+    </div>
+  </section>
+
+  <section id="summary" class="summary"></section>
+  <main id="tabList" class="tab-list"></main>
+
+  <template id="windowTemplate">
+    <section class="window-card">
+      <div class="window-header">
+        <h2></h2>
+        <button class="suspend-window-button">Suspend eligible in window</button>
+      </div>
+      <div class="window-tabs"></div>
+    </section>
+  </template>
+
+  <template id="tabTemplate">
+    <article class="tab-row">
+      <img class="favicon" alt="">
+      <div class="tab-main">
+        <div class="tab-title"></div>
+        <div class="tab-url"></div>
+        <div class="tab-meta"></div>
+      </div>
+      <div class="tab-actions">
+        <button class="suspend-button">Suspend</button>
+        <button class="restore-button">Open</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="popup.js"></script>
+</body>
+</html>
