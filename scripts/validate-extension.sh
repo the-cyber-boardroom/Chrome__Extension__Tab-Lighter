@@ -19,6 +19,7 @@ required_files=(
   "extension/options.html"
   "extension/options.css"
   "extension/options.js"
+  "extension/VERSION"
   "extension/icons/icon16.png"
   "extension/icons/icon32.png"
   "extension/icons/icon48.png"

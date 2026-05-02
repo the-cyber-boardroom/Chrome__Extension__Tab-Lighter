@@ -10,8 +10,9 @@ const $ = selector => document.querySelector(selector);
 const tabList = $('#tabList');
 const searchInput = $('#searchInput');
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   wireUiEvents();
+  await loadBuildVersion();
   loadDashboard();
 });
 
@@ -210,3 +211,16 @@ function badgesFor(tab) {
 function formatDuration(seconds) { if (seconds < 60) return `${seconds}s`; const minutes = Math.floor(seconds / 60); if (minutes < 60) return `${minutes}m`; const hours = Math.floor(minutes / 60); if (hours < 48) return `${hours}h ${minutes % 60}m`; return `${Math.floor(hours / 24)}d`; }
 function formatBytes(bytes) { if (!Number.isFinite(bytes)) return 'unknown'; const units = ['B', 'KB', 'MB', 'GB', 'TB']; let value = bytes; let unit = 0; while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit++; } return `${value.toFixed(unit < 2 ? 0 : 1)} ${units[unit]}`; }
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char])); }
+
+
+async function loadBuildVersion() {
+  const label = document.querySelector('#buildVersion');
+  if (!label) return;
+  try {
+    const response = await fetch(chrome.runtime.getURL('VERSION'), { cache: 'no-store' });
+    const text = (await response.text()).trim();
+    label.textContent = `Build: ${text || 'unknown'}`;
+  } catch (error) {
+    label.textContent = 'Build: unavailable';
+  }
+}
