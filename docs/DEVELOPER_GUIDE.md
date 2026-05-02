@@ -3,22 +3,28 @@
 ## Repository layout
 
 ```text
-tab-lighter/
-  manifest.json
-  background.js
-  popup.html
-  popup.css
-  popup.js
-  options.html
-  options.css
-  options.js
-  icons/
+Chrome__Extension__Tab-Lighter/
+  extension/
+    manifest.json
+    background.js
+    popup.html
+    popup.css
+    popup.js
+    options.html
+    options.css
+    options.js
+    icons/
   docs/
     USER_GUIDE.md
     ARCHITECTURE.md
     DEVELOPER_GUIDE.md
     PRIVACY_SECURITY.md
     ROADMAP.md
+  scripts/
+    validate-extension.sh
+    zip-extension.sh
+  tests/
+    README.md
 ```
 
 ## Local development
@@ -26,7 +32,7 @@ tab-lighter/
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
 3. Click **Load unpacked**.
-4. Select the `tab-lighter` folder.
+4. Select the `extension/` folder (not the repository root).
 5. After code changes, click the extension card's reload button.
 6. Reopen the popup.
 
@@ -167,8 +173,7 @@ No build step is required. The extension uses plain HTML, CSS, and JavaScript.
 To create a zip from the command line:
 
 ```bash
-cd tab-lighter
-zip -r ../tab-lighter.zip . -x "*.DS_Store"
+./scripts/zip-extension.sh
 ```
 
 ## Release checklist
