@@ -1,7 +1,7 @@
 const state = {
   data: null,
   query: '',
-  view: 'cards',
+  view: 'table',
   sort: 'inactive_desc',
   events: []
 };
@@ -17,6 +17,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 function wireUiEvents() {
+  $('#viewSelect').value = state.view;
+  $('#sortSelect').value = state.sort;
   $('#refreshButton').addEventListener('click', () => dispatchUiEvent('UI_REFRESH_CLICK', {}, loadDashboard));
   $('#suspendEligibleButton').addEventListener('click', () => dispatchUiEvent('UI_SUSPEND_ELIGIBLE_CLICK', {}, async () => {
     await send({ type: 'SUSPEND_ALL_ELIGIBLE', scope: 'all' });
@@ -126,14 +128,55 @@ function renderSummary(counts) {
 
 function renderTable(tabs) {
   if (!tabs.length) { tabList.innerHTML = '<div class="empty">No tabs match your search.</div>'; return; }
+  const memorySummary = state.data?.memory?.usedPercent === null || state.data?.memory?.usedPercent === undefined
+    ? 'memory n/a'
+    : `${state.data.memory.usedPercent}% memory used`;
   const rows = tabs.map(tab => `<tr>
     <td>${escapeHtml(tab.title)}</td>
     <td>${escapeHtml(tab.domain || '')}</td>
-    <td>${tab.inactiveSeconds}s</td>
+    <td>${formatDuration(tab.inactiveSeconds)}</td>
     <td>${tab.discarded ? 'Yes' : 'No'}</td>
     <td>${tab.eligible ? 'Yes' : escapeHtml(tab.reason)}</td>
+    <td>${escapeHtml(memorySummary)}</td>
+    <td>
+      <div class="table-actions" data-tab-id="${tab.id}">
+        <button class="table-suspend" ${tab.discarded || tab.active || !tab.url ? 'disabled' : ''}>Suspend</button>
+        <button class="table-open">${tab.discarded ? 'Restore' : 'Open'}</button>
+      </div>
+    </td>
   </tr>`).join('');
-  tabList.innerHTML = `<div class="table-wrap"><table class="tab-table"><thead><tr><th>Title</th><th>Domain</th><th>Inactive</th><th>Suspended</th><th>Eligibility</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  tabList.innerHTML = `<div class="table-wrap"><table class="tab-table"><thead><tr>
+  <th><button class="th-sort" data-sort="title_asc">Title</button></th>
+  <th>Domain</th>
+  <th><button class="th-sort" data-sort="inactive_desc">Inactive</button></th>
+  <th>Suspended</th>
+  <th><button class="th-sort" data-sort="eligible_desc">Eligibility</button></th>
+  <th>Performance</th>
+  <th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>`;
+
+  tabList.querySelectorAll('.th-sort').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      state.sort = btn.dataset.sort;
+      $('#sortSelect').value = state.sort;
+      await send({ type: 'LOG_EVENT', eventType: 'UI_TABLE_SORT_CLICK', payload: { sort: state.sort } });
+      render();
+    });
+  });
+
+  tabList.querySelectorAll('.table-actions').forEach(row => {
+    const tabId = Number(row.dataset.tabId);
+    row.querySelector('.table-suspend')?.addEventListener('click', async () => {
+      await send({ type: 'LOG_EVENT', eventType: 'UI_TABLE_SUSPEND_CLICK', payload: { tabId } });
+      await send({ type: 'SUSPEND_TAB', tabId });
+      await loadDashboard();
+    });
+    row.querySelector('.table-open')?.addEventListener('click', async () => {
+      await send({ type: 'LOG_EVENT', eventType: 'UI_TABLE_OPEN_CLICK', payload: { tabId } });
+      await send({ type: 'RESTORE_TAB', tabId });
+      await loadDashboard();
+    });
+  });
 }
 
 function renderEvents() {
