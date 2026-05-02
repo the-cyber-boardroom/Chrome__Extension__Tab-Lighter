@@ -11,6 +11,7 @@
     <div>
       <h1>Tab Lighter</h1>
       <p id="subtitle">Loading tabs…</p>
+      <p id="buildVersion" class="build-version">Build: loading…</p>
     </div>
     <button id="refreshButton" class="icon-button" title="Refresh">↻</button>
   </header>
@@ -30,6 +31,21 @@
       <button id="suspendEligibleButton">Suspend eligible</button>
       <button id="runAutoButton">Run auto rules</button>
       <button id="optionsButton">Options</button>
+    </div>
+    <div class="view-controls">
+      <label for="viewSelect">View</label>
+      <select id="viewSelect">
+        <option value="table">Table</option>
+        <option value="cards">Cards</option>
+        <option value="events">Events</option>
+      </select>
+      <label for="sortSelect">Sort</label>
+      <select id="sortSelect">
+        <option value="inactive_desc">Most inactive</option>
+        <option value="inactive_asc">Least inactive</option>
+        <option value="title_asc">Title A→Z</option>
+        <option value="eligible_desc">Eligible first</option>
+      </select>
     </div>
   </section>
 

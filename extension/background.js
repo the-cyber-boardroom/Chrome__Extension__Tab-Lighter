@@ -20,7 +20,8 @@ const DEFAULT_SETTINGS = Object.freeze({
 const STORAGE_KEYS = Object.freeze({
   settings: 'settings',
   tabActivity: 'tabActivity',
-  lastAutoRun: 'lastAutoRun'
+  lastAutoRun: 'lastAutoRun',
+  eventLog: 'eventLog'
 });
 
 const ALARM_NAME = 'tab-lighter-auto-suspend';
@@ -95,6 +96,10 @@ async function handleMessage(message) {
       return { ok: true, data: await saveSettings(message.settings || {}) };
     case 'ADD_ALLOWLIST_DOMAIN':
       return { ok: true, data: await addAllowlistDomain(message.domain) };
+    case 'GET_EVENT_LOG':
+      return { ok: true, data: await getEventLog(message.limit || 100) };
+    case 'LOG_EVENT':
+      return { ok: true, data: await logEvent(message.eventType || 'UI_EVENT', message.payload || {}) };
     default:
       throw new Error(`Unknown message type: ${message?.type}`);
   }
@@ -149,6 +154,21 @@ async function addAllowlistDomain(domain) {
   const settings = await getSettings();
   const allowlist = [...new Set([...settings.allowlist, clean])];
   return saveSettings({ allowlist });
+}
+
+
+async function getEventLog(limit = 100) {
+  const { eventLog } = await chrome.storage.local.get(STORAGE_KEYS.eventLog);
+  const rows = Array.isArray(eventLog) ? eventLog : [];
+  return rows.slice(0, Math.max(1, Math.min(500, Number(limit) || 100)));
+}
+
+async function logEvent(type, payload = {}) {
+  const { eventLog } = await chrome.storage.local.get(STORAGE_KEYS.eventLog);
+  const rows = Array.isArray(eventLog) ? eventLog : [];
+  const next = [{ type: String(type || 'EVENT'), at: Date.now(), payload }, ...rows].slice(0, 500);
+  await chrome.storage.local.set({ [STORAGE_KEYS.eventLog]: next });
+  return next[0];
 }
 
 async function getTabActivity() {
@@ -325,6 +345,7 @@ async function suspendTab(tabId, reason = 'manual') {
   if (tab.discarded) return { tabId: id, discarded: true, alreadyDiscarded: true };
   const discarded = await chrome.tabs.discard(id);
   await updateTabActivity(id, { lastSuspendedAt: Date.now(), suspendReason: reason });
+  await logEvent('TAB_SUSPENDED', { tabId: id, reason, discarded: Boolean(discarded?.discarded) });
   return { tabId: id, discarded: Boolean(discarded?.discarded), title: discarded?.title || tab.title };
 }
 
@@ -341,6 +362,7 @@ async function restoreTab(tabId) {
     }
   }
   await markTabActive(id, { restoredAt: Date.now() });
+  await logEvent('TAB_OPENED_OR_RESTORED', { tabId: id, wasDiscarded: Boolean(tab.discarded) });
   return { tabId: id, restored: true };
 }
 
@@ -410,8 +432,10 @@ async function runAutoSuspend(source = 'alarm') {
     }
   }
 
-  await chrome.storage.local.set({ [STORAGE_KEYS.lastAutoRun]: { at: now, source, ...summarizeSuspendResults(results) } });
-  return { source, memory, ...summarizeSuspendResults(results) };
+  const summary = summarizeSuspendResults(results);
+  await chrome.storage.local.set({ [STORAGE_KEYS.lastAutoRun]: { at: now, source, ...summary } });
+  await logEvent('AUTO_SUSPEND_RUN', { source, summary });
+  return { source, memory, ...summary };
 }
 
 function summarizeSuspendResults(results) {
